@@ -5,6 +5,10 @@
 ![Postgres](https://img.shields.io/badge/postgres-15%20%2B%20pgvector-black?style=flat-square)
 ![Local](https://img.shields.io/badge/inference-fully%20local-black?style=flat-square)
 
+**Status:** in daily use on one machine since August 2026. Graph extraction runs
+nightly and coverage grows per run; the numbers below are live figures, not
+targets.
+
 A fully local retrieval system over a personal document corpus: hybrid search,
 cross-encoder reranking, RAPTOR hierarchical summarisation, and a queryable
 knowledge graph — served to an AI agent over MCP. No API keys, no external
@@ -181,6 +185,10 @@ synthetic ones:
 "CHAPTER" "<author>"
 bash scripting basics
 ```
+
+(Query examples are generalised throughout. The corpus is private, so titles and
+authors are replaced with placeholders — the shapes are real, the works are not
+named.)
 
 Overwhelmingly known-item lookups — find *this* book, *this* chapter — where
 the synthetic set was full-sentence questions. Scoring those needs pooled
