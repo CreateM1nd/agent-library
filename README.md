@@ -17,6 +17,23 @@ services. The models run on the same machine as the database.
 Built in August 2026 on a single mini PC (AMD Ryzen AI Max+ 395, 128 GB unified
 memory) running Ollama + PostgreSQL/pgvector.
 
+## Why this exists
+
+This is the library a self-hosted AI assistant actually reads from.
+
+The assistant runs entirely on one machine — its models, its database, and this
+corpus all share the same memory. That constraint shapes every decision here:
+retrieval competes with the models for RAM, which is why the vector index is
+half-precision; the interface is MCP because the assistant calls these as tools
+rather than a human calling an API; and there is no cloud fallback, so a failure
+is a wrong answer rather than a timeout.
+
+It also explains why the evaluation set is built from real logs. The queries in
+`eval_real_set.py` are what someone actually asked their assistant over a week —
+mostly hunting for a specific book or chapter, rarely the well-formed questions
+a benchmark assumes. Tuning for the second workload and shipping to the first is
+how a system scores well and feels wrong.
+
 ## Where it stands
 
 | | |
