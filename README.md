@@ -1,4 +1,4 @@
-# maria-rag — local retrieval over a document corpus
+# agent-library — a document corpus an AI agent can actually use
 
 ![License](https://img.shields.io/badge/license-MIT-black?style=flat-square)
 ![Python](https://img.shields.io/badge/python-3.12-black?style=flat-square)
@@ -9,10 +9,16 @@
 nightly and coverage grows per run; the numbers below are live figures, not
 targets.
 
-A fully local retrieval system over a personal document corpus: hybrid search,
-cross-encoder reranking, RAPTOR hierarchical summarisation, and a queryable
-knowledge graph — served to an AI agent over MCP. No API keys, no external
-services. The models run on the same machine as the database.
+Not a library in the packaging sense — a *library* of documents, and the
+retrieval an agent needs to use one: hybrid search, cross-encoder reranking,
+RAPTOR hierarchical summarisation, a queryable knowledge graph, and an inventory
+lookup so the agent can say what it does *not* have. Served over MCP. No API
+keys, no external services; the models run on the same machine as the database.
+
+It is a reference implementation, not a framework. There is no config file and
+nothing is pluggable — the value is in the reasoning recorded beside each
+decision, and in two evaluations that show what happens when the reasoning is
+wrong.
 
 Built in August 2026 on a single mini PC (AMD Ryzen AI Max+ 395, 128 GB unified
 memory) running Ollama + PostgreSQL/pgvector.
