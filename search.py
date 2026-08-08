@@ -105,8 +105,8 @@ def _title_tsquery(query):
 
 
 # Ranked by how many DISTINCT query terms the filename contains, not by
-# ts_rank. Measured: for "<title> <author>", ts_rank scored three unrelated
-# titles at an identical 0.01520 -- it does not discriminate between short
+# ts_rank. Measured: for "<title> <author>", ts_rank scored
+# three unrelated titles at an identical 0.01520 -- it does not discriminate between short
 # titles matching different numbers of terms, so the ordering was arbitrary.
 # Raw overlap count does exactly what a known-item lookup wants: the file whose
 # name accounts for most of what you typed.
@@ -295,6 +295,11 @@ def search(query, top_k=5, summary_results=DEFAULT_SUMMARY_RESULTS):
     is "passage" for verbatim book text or "summary" for a synthesized node.
     Both kinds carry a cross-encoder logit (unbounded, higher is better), but
     they are ranked within their own lane -- compare scores within a kind."""
+    # An empty or stopword-only query has nothing to embed: Ollama returns an
+    # empty embeddings list and indexing it raises IndexError deep in the
+    # client. Fail closed here instead, where the caller can see why.
+    if not query or not query.strip():
+        return []
     vector = embed(query)
     # plainto_tsquery ANDs every term, so the keyword lane returns NOTHING
     # unless one passage contains every word typed. Measured on 19 real queries
@@ -485,13 +490,22 @@ def find_files(pattern, limit=30):
             cur.execute("SELECT tsvector_to_array(to_tsvector('english', %s))",
                         (" ".join(terms),))
             qlex = set(cur.fetchone()[0] or [])
-        # Threshold scales with the query. A single-word query can only ever
-        # score one lexeme, so requiring two would make it unanswerable; a
-        # multi-word query matching just one common word ("guide") is noise.
-        # Accepting any single overlap made a three-word query for a work that
-        # is NOT in the corpus return 21 of 257 files -- a false positive in the
-        # one tool whose entire job is to produce a trustworthy negative.
-        min_hits = min(2, len(qlex))
+        # Threshold scales with query length -- the same intent as
+        # Elasticsearch's minimum_should_match, which Postgres has no operator
+        # for. Two fixes were needed here, both found by tests:
+        #
+        #   `if hits:`        any single overlap. A 3-word query for an absent
+        #                     work matched 21 of 257 files on "guide" alone.
+        #   `min(2, len)`     better, but a 7-word query still only needed two
+        #                     overlaps, so nonsense with two common words passed.
+        #
+        # Now: one term needs one hit, two or three need two, and beyond that
+        # half the query must match. A real title query survives because its
+        # extra words (author, subtitle) are a minority of the terms; nonsense
+        # does not, because its overlaps are incidental.
+        import math
+        n = len(qlex)
+        min_hits = 1 if n == 1 else max(2, math.ceil(n * 0.5))
         scored = []
         for path, lex in files:
             hits = len(qlex & lex)

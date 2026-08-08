@@ -318,6 +318,9 @@ python kg_extract.py                   # extract entities/relations (incremental
 python search.py "your question here"
 python kg_query.py "Active Directory"  # inspect the graph
 python eval_run.py                     # score retrieval configurations
+
+python test_units.py                   # no database needed
+python test_integration.py             # needs a populated corpus; skips without one
 ```
 
 Serve it to an agent:
@@ -351,6 +354,8 @@ If you only read three files: `search.py`, `kg_ontology.py`, `chunk_text.py`.
 | `eval_judge_pool.py` | pooled relevance judgments for queries with no gold answer |
 | `eval_score_qrels.py` | P@5 / nDCG / MRR against those judgments |
 | `build_lexeme_df.py` | corpus term-frequency table the keyword lane ranks on |
+| `test_units.py` | pure-function tests; no database or models needed |
+| `test_integration.py` | invariants against a real corpus; skips cleanly without one |
 
 The comments are denser than usual and often record a measurement or a wrong
 turn rather than restating the code. That is deliberate — most of the
@@ -380,6 +385,10 @@ comments alongside the code they shaped.
   a deployment's private search history, so it is gitignored; `eval_real_set.py`
   rebuilds an equivalent one from your own logs. The real-query figures quoted
   above are therefore reported, not reproducible from this repo alone.
+- **Test coverage is partial.** `test_units.py` covers the pure functions where
+  a silent wrong answer is worse than a crash — the closed vocabulary, term
+  selection, chunk-structure detection, the evaluation metrics. Ingestion,
+  embedding, and RAPTOR construction are exercised only by running them.
 - **Relevance judgments come from a local model, not a person.** A consistent
   rater, not a correct one, and only 16 of 19 real queries had any relevant
   passage in the pool at all.
