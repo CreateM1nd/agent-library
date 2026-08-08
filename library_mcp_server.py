@@ -49,9 +49,14 @@ def library_files(pattern: str = "", limit: int = 30) -> dict:
     it is missing, so "I don't have that" must come from here, never from
     library_search returning poor results.
 
-    Returns {"total": files in corpus, "matched": n, "files": [...]}. A
-    "matched" of 0 is a definitive negative -- report it plainly rather than
-    offering the nearest topic.
+    Returns {"total", "matched", "returned", "truncated", "files"}. A "matched"
+    of 0 is a definitive negative -- report it plainly rather than offering the
+    nearest topic.
+
+    When "truncated" is true, "files" is a SAMPLE and not the whole answer. Do
+    not describe a truncated list as complete, and do not infer the contents of
+    the corpus from search results either: searching several topics returns
+    examples, never an inventory. If a full listing is wanted, raise `limit`.
 
     Matching is loose on purpose (substring or stemmed word overlap), so a
     half-remembered title or wrong punctuation still finds a real file. An

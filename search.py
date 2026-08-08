@@ -482,8 +482,8 @@ def find_files(pattern, limit=30):
         files = _file_lexemes(cur)
         needle = (pattern or "").strip().lower()
         if not needle:
-            return {"total": len(files), "matched": len(files),
-                    "files": sorted(p for p, _ in files)[:limit]}
+            names = sorted(p for p, _ in files)
+            return _inventory(len(files), len(files), names, limit)
         terms = _title_terms(needle)
         qlex = set()
         if terms:
@@ -515,5 +515,26 @@ def find_files(pattern, limit=30):
             if hits >= min_hits or substring:
                 scored.append((hits, path))
         scored.sort(reverse=True)
-        return {"total": len(files), "matched": len(scored),
-                "files": [p for _, p in scored[:limit]]}
+        return _inventory(len(files), len(scored), [p for _, p in scored], limit)
+
+
+def _inventory(total, matched, names, limit):
+    """Inventory result with truncation stated, not merely inferable.
+
+    `matched` and `len(files)` diverging already implied truncation, but a
+    caller had to notice. On 2026-08-08 the agent ran fourteen topical searches
+    over the corpus and then reported a complete inventory of every file in it --
+    it had seen at most sixty results and took the total from its tool
+    description. The verification layer caught it.
+
+    Truncation is now said outright, because "you could work this out" and
+    "this tells you" are different things when a model is about to summarise.
+    """
+    returned = names[:limit]
+    return {
+        "total": total,
+        "matched": matched,
+        "returned": len(returned),
+        "truncated": matched > len(returned),
+        "files": returned,
+    }
