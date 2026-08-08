@@ -105,9 +105,8 @@ def _title_tsquery(query):
 
 
 # Ranked by how many DISTINCT query terms the filename contains, not by
-# ts_rank. Measured: for "<title> <author>", ts_rank scored
-# three unrelated titles
-# at an identical 0.01520 -- it does not discriminate between short
+# ts_rank. Measured: for "<title> <author>", ts_rank scored three unrelated
+# titles at an identical 0.01520 -- it does not discriminate between short
 # titles matching different numbers of terms, so the ordering was arbitrary.
 # Raw overlap count does exactly what a known-item lookup wants: the file whose
 # name accounts for most of what you typed.
@@ -486,12 +485,20 @@ def find_files(pattern, limit=30):
             cur.execute("SELECT tsvector_to_array(to_tsvector('english', %s))",
                         (" ".join(terms),))
             qlex = set(cur.fetchone()[0] or [])
+        # Threshold scales with the query. A single-word query can only ever
+        # score one lexeme, so requiring two would make it unanswerable; a
+        # multi-word query matching just one common word ("guide") is noise.
+        # Accepting any single overlap made a three-word query for a work that
+        # is NOT in the corpus return 21 of 257 files -- a false positive in the
+        # one tool whose entire job is to produce a trustworthy negative.
+        min_hits = min(2, len(qlex))
         scored = []
         for path, lex in files:
             hits = len(qlex & lex)
-            if needle in path.lower():
+            substring = needle in path.lower()
+            if substring:
                 hits += 10  # a literal substring beats any amount of stem overlap
-            if hits:
+            if hits >= min_hits or substring:
                 scored.append((hits, path))
         scored.sort(reverse=True)
         return {"total": len(files), "matched": len(scored),
