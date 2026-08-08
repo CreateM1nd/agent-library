@@ -1,0 +1,14 @@
+# Ingest
+pymupdf
+EbookLib
+beautifulsoup4
+pytesseract          # OCR fallback; also needs the tesseract binary on PATH
+pillow
+
+# Storage / retrieval
+psycopg[binary]
+pgvector
+sentence-transformers  # cross-encoder reranker (CPU)
+
+# MCP server
+mcp

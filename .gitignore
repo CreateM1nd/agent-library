@@ -1,0 +1,35 @@
+# Never commit the corpus itself
+library/
+*.pdf
+*.epub
+
+# Secrets
+.env
+*.env
+
+# Run state and logs
+*.log
+*.jsonl
+*checkpoint*.json
+.raptor-baseline.json
+.search-circuit-state.json
+
+# ...but the evaluation query sets are committed deliberately. They are the
+# yardstick: a score is only comparable to another score measured against the
+# identical set, so the set has to travel with the code that reports the number.
+!eval/queries-*.jsonl
+
+# The REAL query set and its judgments are deliberately NOT published. They are
+# extracted from a private search history, so the file is a list of what someone
+# actually looked for and which books they own. eval_real_set.py regenerates an
+# equivalent set from any deployment's own logs, which is the point -- the
+# harness is the artifact, not one person's reading list.
+eval/real-queries.jsonl
+eval/qrels-real.jsonl
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
